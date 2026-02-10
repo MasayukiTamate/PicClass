@@ -1,0 +1,6 @@
+2026-02-10 12:32:23 - lib.GazoToolsState - WARNING - [GazoToolsState.py:352] - 不明なウィンドウ: vector_window_geometry
+2026-02-10 15:37:17 - lib.GazoToolsState - WARNING - [GazoToolsState.py:352] - 不明なウィンドウ: vector_window_geometry
+2026-02-10 15:45:43 - lib.GazoToolsData - WARNING - [GazoToolsData.py:299] - アクセス権限がありません: K:/$RECYCLE.BIN\S-1-5-21-1205137531-1263769152-9579494-1001
+2026-02-10 16:25:53 - lib.GazoToolsData - WARNING - [GazoToolsData.py:299] - アクセス権限がありません: K:/$RECYCLE.BIN\S-1-5-21-1205137531-1263769152-9579494-1001
+2026-02-10 16:26:02 - lib.GazoToolsData - WARNING - [GazoToolsData.py:299] - アクセス権限がありません: K:/System Volume Information
+2026-02-10 17:33:02 - lib.GazoToolsState - WARNING - [GazoToolsState.py:352] - 不明なウィンドウ: vector_window_geometry

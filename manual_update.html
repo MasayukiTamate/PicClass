@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GazoTools 部分アップデート・マニュアル</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            margin-top: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, monospace;
+        }
+
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 15px;
+            color: #666;
+            margin: 15px 0;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        .warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .footer {
+            margin-top: 50px;
+            font-size: 0.8em;
+            color: #999;
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>GazoTools 部分アップデート・マニュアル</h1>
+
+    <p>このマニュアルでは、GazoToolsの「部分アップデート」の方法について説明します。</p>
+
+    <h2>部分アップデートとは？</h2>
+
+    <p>GazoToolsは、メインの実行ファイル（<code>GazoTools.exe</code>）と、機能ごとのプログラムファイル（スクリプト）が分かれて構成されています。<br>
+        そのため、すべてのファイルを入れ替えることなく、<strong>変更があった一部のファイルだけを差し替えることで、アップデート（機能追加やバグ修正）を行う</strong>ことが可能です。</p>
+
+    <p>これを「部分アップデート」と呼びます。</p>
+
+    <h2>対象となるファイル</h2>
+
+    <p>GazoToolsのフォルダ構成は以下のようになっています（主要なもののみ）：</p>
+
+    <ul>
+        <li><strong>GazoTools.exe</strong> (メイン実行ファイル)</li>
+        <li><strong>GazoToolsLogic.py</strong> (ロジック・計算処理)</li>
+        <li><strong>lib/</strong> (フォルダ - ライブラリ・機能モジュール群)
+            <ul>
+                <li><code>GazoToolsGUI.py</code></li>
+                <li><code>GazoToolsState.py</code></li>
+                <li>など...</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>アップデートの種類</h3>
+
+    <ol>
+        <li><strong>スクリプト更新（部分アップデート）</strong>
+            <ul>
+                <li>更新内容が <code>GazoToolsLogic.py</code> や <code>lib/</code> フォルダ内のファイルのみの場合。</li>
+                <li><code>GazoTools.exe</code> を<strong>入れ替える必要はありません</strong>。</li>
+                <li>ダウンロードした新しい <code>.py</code> ファイルを上書きするだけで更新完了です。</li>
+            </ul>
+        </li>
+        <li><strong>本体更新（フルアップデート）</strong>
+            <ul>
+                <li><code>GazoTools.exe</code> 自体に変更があった場合。</li>
+                <li>この場合は、<code>GazoTools.exe</code> を含めた全てのファイルを新しいものに入れ替えてください。</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>部分アップデートの手順</h2>
+
+    <p>手順は非常にシンプルです。</p>
+
+    <h3>1. アプリを終了する</h3>
+    <p>起動中の GazoTools があれば、すべて終了させてください。</p>
+
+    <h3>2. ファイルを上書きする</h3>
+    <p>配布された更新用ファイル（<code>GazoToolsLogic.py</code> や <code>lib</code> フォルダなど）を、お手元の <code>GazoTools</code>
+        フォルダにコピーし、<strong>上書き保存</strong>してください。</p>
+
+    <ul>
+        <li><strong>注意</strong>: <code>lib</code> フォルダを更新する場合は、フォルダごと上書きコピーするのが確実です。</li>
+    </ul>
+
+    <div class="warning">
+        <strong>推奨</strong>: 万が一のために、上書きする前のファイルを「バックアップ」として別の場所にコピーしておくことをお勧めします。
+    </div>
+
+    <h3>3. アプリを起動する</h3>
+    <p>通常通り <code>GazoTools.exe</code> をダブルクリックして起動してください。<br>
+        起動した時点で、新しいプログラムファイルが読み込まれ、アップデートが適用されています。</p>
+
+    <h2>更新が適用されたか確認するには？</h2>
+
+    <ul>
+        <li><strong>新機能</strong>: 追加されたメニューやボタンが表示されているか確認してください。</li>
+        <li><strong>バージョン情報</strong>: 本体のタイトルバーやコンソールログ（表示されている場合）に変更点が表示される場合があります。</li>
+    </ul>
+
+    <h2>エラーが出た場合</h2>
+
+    <p>アップデート後に起動しなくなったり、エラーが出るようになった場合は：</p>
+
+    <ol>
+        <li><code>errarlog.md</code> （エラーログファイル）を確認してください。</li>
+        <li>バックアップしておいた古いファイルに戻して、正常に起動するか確認してください。</li>
+        <li>それでも治らない場合は、お手数ですが「フルアップデート（全ファイルの入れ替え）」をお試しください。</li>
+    </ol>
+
+    <div class="footer">
+        Created by Antigravity at 2026-02-10
+    </div>
+
+</body>
+
+</html>

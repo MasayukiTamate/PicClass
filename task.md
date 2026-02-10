@@ -1,0 +1,55 @@
+# Task List
+
+- [x] Refine Smart Move Feature
+  - [x] Update `execute_move` in `GazoToolsApp.py` to support bulk moving (add `refresh` parameter)
+  - [x] Update `SimilarityMoveDialog` in `GazoToolsLogic.py` to use optimized move and `refresh_callback`
+  - [x] Implement persistence for Smart Move threshold (save/load settings)
+  - [x] Verify logic correctness
+- [x] Smart Move Thumbnail Display
+  - [x] Add `smart_move_show_thumbnails` setting to `GazoToolsState.py`
+  - [x] Implement `ScrollableFrame` class for optimized list display
+  - [x] Implement real-time filtering (Widget Pooling) in `SimilarityMoveDialog`
+  - [x] Add thumbnail toggle checkbox
+  - [x] Implement background processing for data preparation (threading)
+    - [x] Measure and log time every 10 items
+- [x] Documentation
+  - [x] Update `manual.html` / `manual.md` with Smart Move feature details
+- [x] Code Analysis
+  - [x] Update `code_analysis.md`
+- [x] History
+  - [x] Update `hister.md`
+- [x] Resolve Merge Conflicts
+  - [x] Analyze and fix `GazoToolsApp.py`
+  - [x] Analyze and fix `GazoToolsLogic.py`
+  - [x] Verify application stability
+  - [x] Report progress
+- [x] Dedicated Vector Analysis Window
+  - [x] Create `VectorWindow` class in `lib/GazoToolsGUI.py`
+  - [x] Instantiate `VectorWindow` in `GazoToolsApp.py`
+  - [x] Update `GazoToolsLogic.py` to output analysis to `VectorWindow`
+  - [x] Verify functionality
+- [x] Click-to-Toggle Vector Window
+  - [x] Update `GazoToolsLogic.py` to bind click event on image window
+  - [x] Update `GazoToolsApp.py` to apply saved geometry/visibility on startup
+- [x] AI類似画像仕分け機能の強化 (Portfolio: AI Sorting GUI)
+  - [x] Implementation Plan作成
+  - [x] GUI Design & Implementation (`VisualSortWindow`)
+  - [x] Logic Integration (`open_visual_sort_window`, context menu)
+  - [x] Documentation Update (`manual.md`, `manual.html`)
+  - [x] Verification (Manual Testing)
+- [x] コンセプト説明書の作成 (Concept Documentation)
+  - [x] コンセプト構成案の作成 (Drafting Outline)
+  - [x] `concept.md` の作成 (Creation)
+- [ ] 実行ファイル化と部分アップデート対応 (Executable Build & Partial Update)
+  - [x] PyInstallerの除外設定を計画 (Plan build strategy)
+  - [x] `GazoToolsApp.py` の修正 (Modify imports for external logic)
+  - [x] `build_exe.py` の作成と実行 (Create & Run build script)
+  - [x] マニュアル作成 (Create Update Manual)
+  - [ ] 動作確認 (Verify executable)
+- [ ] 起動時にファイルを引数で取得する
+  - [ ] 実装プランの作成 (Implementation Plan)
+  - [ ] GazoToolsApp.pyの修正 (Modify GazoToolsApp.py)
+    - [ ] sys.argvの確認
+    - [ ] 初期フォルダの上書き
+  - [ ] ドキュメント更新 (Update Manual/Docs)
+  - [ ] 動作確認 (Verification)
