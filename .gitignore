@@ -13,6 +13,3 @@ logs/
 
 # テスト出力
 test_output.txt
-
-# 大容量ファイル
-*.zip
