@@ -5,8 +5,8 @@ a = Analysis(
     ['GazoToolsApp.py'],
     pathex=[],
     binaries=[],
-    datas=[],
-    hiddenimports=[],
+    datas=[('C:\\Users\\magor\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\tkinterdnd2\\tkdnd', 'tkinterdnd2/tkdnd')],
+    hiddenimports=['ctypes.wintypes', 'torch', 'torchvision', 'torchvision.models', 'torchvision.transforms', 'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog', 'send2trash'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -32,6 +32,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['PicClass.ico'],
 )
 coll = COLLECT(
     exe,

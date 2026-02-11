@@ -1,55 +1,30 @@
-# Task List
+# タスクリスト
 
-- [x] Refine Smart Move Feature
-  - [x] Update `execute_move` in `GazoToolsApp.py` to support bulk moving (add `refresh` parameter)
-  - [x] Update `SimilarityMoveDialog` in `GazoToolsLogic.py` to use optimized move and `refresh_callback`
-  - [x] Implement persistence for Smart Move threshold (save/load settings)
-  - [x] Verify logic correctness
-- [x] Smart Move Thumbnail Display
-  - [x] Add `smart_move_show_thumbnails` setting to `GazoToolsState.py`
-  - [x] Implement `ScrollableFrame` class for optimized list display
-  - [x] Implement real-time filtering (Widget Pooling) in `SimilarityMoveDialog`
-  - [x] Add thumbnail toggle checkbox
-  - [x] Implement background processing for data preparation (threading)
-    - [x] Measure and log time every 10 items
-- [x] Documentation
-  - [x] Update `manual.html` / `manual.md` with Smart Move feature details
-- [x] Code Analysis
-  - [x] Update `code_analysis.md`
-- [x] History
-  - [x] Update `hister.md`
-- [x] Resolve Merge Conflicts
-  - [x] Analyze and fix `GazoToolsApp.py`
-  - [x] Analyze and fix `GazoToolsLogic.py`
-  - [x] Verify application stability
-  - [x] Report progress
-- [x] Dedicated Vector Analysis Window
-  - [x] Create `VectorWindow` class in `lib/GazoToolsGUI.py`
-  - [x] Instantiate `VectorWindow` in `GazoToolsApp.py`
-  - [x] Update `GazoToolsLogic.py` to output analysis to `VectorWindow`
-  - [x] Verify functionality
-- [x] Click-to-Toggle Vector Window
-  - [x] Update `GazoToolsLogic.py` to bind click event on image window
-  - [x] Update `GazoToolsApp.py` to apply saved geometry/visibility on startup
-- [x] AI類似画像仕分け機能の強化 (Portfolio: AI Sorting GUI)
-  - [x] Implementation Plan作成
-  - [x] GUI Design & Implementation (`VisualSortWindow`)
-  - [x] Logic Integration (`open_visual_sort_window`, context menu)
-  - [x] Documentation Update (`manual.md`, `manual.html`)
-  - [x] Verification (Manual Testing)
-- [x] コンセプト説明書の作成 (Concept Documentation)
-  - [x] コンセプト構成案の作成 (Drafting Outline)
-  - [x] `concept.md` の作成 (Creation)
-- [ ] 実行ファイル化と部分アップデート対応 (Executable Build & Partial Update)
-  - [x] PyInstallerの除外設定を計画 (Plan build strategy)
-  - [x] `GazoToolsApp.py` の修正 (Modify imports for external logic)
-  - [x] `build_exe.py` の作成と実行 (Create & Run build script)
-  - [x] マニュアル作成 (Create Update Manual)
-  - [ ] 動作確認 (Verify executable)
-- [ ] 起動時にファイルを引数で取得する
-  - [ ] 実装プランの作成 (Implementation Plan)
-  - [ ] GazoToolsApp.pyの修正 (Modify GazoToolsApp.py)
-    - [ ] sys.argvの確認
-    - [ ] 初期フォルダの上書き
-  - [ ] ドキュメント更新 (Update Manual/Docs)
-  - [ ] 動作確認 (Verification)
+- [x] 現状のファイルと依存関係の確認
+- [x] 必要なライブラリの特定
+- [x] ライブラリのインストール (Pillow, tkinterdnd2, psutil, AI libs, send2trash)
+- [x] 動作確認
+- [x] 視覚的仕分け機能（VisualSort）の改善
+    - [x] Implementation Plan作成
+    - [x] コード実装 (更新ボタン, 動的リサイズ)
+    - [x] 動作確認
+    - [x] 全選択解除ボタン追加
+- [x] 実行ファイル作成 (EXE化)
+    - [x] PyInstallerのインストール確認
+    - [x] build_exe.py (ビルドスクリプト) の作成/更新
+    - [x] EXE作成実行
+    - [x] 起動確認 (ファイル構成チェック完了)
+    - [x] 起動時エラー対応 (tkinter.ttk)
+    - [x] ウィンドウサイズ修正 (600x600)
+        - [x] config_defaults.py 修正
+        - [x] GazoToolsApp.py 修正
+    - [x] エラーログ通知機能 (`tamaya2473616@gmail.com`)
+        - [x] `lib/GazoToolsLogger.py` にメール送信機能を追加
+    - [x] ステータスバーメモリ表示修正
+        - [x] `GazoToolsApp.py` 修正 (空き/使用メモリ表示)
+    - [x] EXE再ビルド (全選択解除ボタン反映)
+- [x] ピックアップマニュアル作成 (HTML)
+    - [x] コンテンツ作成 (おすすめ機能選定)
+    - [x] `pickup_manual.html` 作成
+    - [x] デザイン修正 (緑色テーマ、タイトル強調)
+    - [x] コンセプト反映 (AI選別、大容量化、推し活、写真保存)

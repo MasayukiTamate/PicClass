@@ -6,6 +6,23 @@
 import logging
 import os
 from datetime import datetime
+import logging.handlers
+
+try:
+    from lib.config_defaults import (
+        DEFAULT_SMTP_SERVER, DEFAULT_SMTP_PORT, 
+        DEFAULT_SENDER_EMAIL, DEFAULT_SENDER_PASSWORD, 
+        DEFAULT_RECIPIENT_EMAIL, DEFAULT_ENABLE_EMAIL_LOGGING
+    )
+except ImportError:
+    # デフォルト値がない場合のフォールバック
+    DEFAULT_SMTP_SERVER = "smtp.gmail.com"
+    DEFAULT_SMTP_PORT = 587
+    DEFAULT_SENDER_EMAIL = ""
+    DEFAULT_SENDER_PASSWORD = ""
+    DEFAULT_RECIPIENT_EMAIL = ""
+    DEFAULT_ENABLE_EMAIL_LOGGING = False
+
 
 
 class LoggerManager:
@@ -53,11 +70,29 @@ class LoggerManager:
         )
         file_handler.setFormatter(file_formatter)
         
-        # ルートロガーの設定
         root_logger = logging.getLogger()
         root_logger.setLevel(log_level)
         root_logger.addHandler(console_handler)
         root_logger.addHandler(file_handler)
+
+        # メール通知ハンドラ (エラー以上)
+        if DEFAULT_ENABLE_EMAIL_LOGGING and DEFAULT_SENDER_EMAIL and DEFAULT_RECIPIENT_EMAIL:
+            try:
+                smtp_handler = logging.handlers.SMTPHandler(
+                    mailhost=(DEFAULT_SMTP_SERVER, DEFAULT_SMTP_PORT),
+                    fromaddr=DEFAULT_SENDER_EMAIL,
+                    toaddrs=[DEFAULT_RECIPIENT_EMAIL],
+                    subject="[GazoTools] Error Report",
+                    credentials=(DEFAULT_SENDER_EMAIL, DEFAULT_SENDER_PASSWORD),
+                    secure=() # TSL使用
+                )
+                smtp_handler.setLevel(logging.ERROR)
+                smtp_handler.setFormatter(file_formatter)
+                root_logger.addHandler(smtp_handler)
+                print("Email logging enabled.")
+            except Exception as e:
+                print(f"Failed to setup email logging: {e}")
+
     
     @classmethod
     def get_logger(cls, name):

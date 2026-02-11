@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GazoTools - おすすめ機能ピックアップ</title>
+    <style>
+        :root {
+            --primary-color: #3cb371;
+            /* Medium Sea Green */
+            --secondary-color: #27ae60;
+            /* Nephritis */
+            --accent-color: #82e0aa;
+            /* Soft Green */
+            --bg-color: #1a1e1b;
+            /* Dark Grayish Green */
+            --text-color: #f0fdf4;
+            --card-bg: #242b26;
+            /* Deep Moss Green */
+            --success-color: #2ecc71;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 5em;
+            /* 2.5em -> 5em タイトルサイズを倍に */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 span {
+            font-size: 0.6em;
+            display: block;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 50px;
+            font-size: 1.2em;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+            border-color: var(--primary-color);
+        }
+
+        .card-header {
+            padding: 20px;
+            background: linear-gradient(90deg, rgba(60, 179, 113, 0.15), transparent);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+        }
+
+        .icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .card h3 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .badge-new {
+            background-color: var(--accent-color);
+            color: #000;
+        }
+
+        .badge-hot {
+            background-color: #ff4757;
+            color: white;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        ul li {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        ul li::before {
+            content: "✔";
+            color: var(--success-color);
+            position: absolute;
+            left: 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            background-color: #0a0a12;
+            margin-top: 60px;
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: filter 0.3s;
+        }
+
+        .btn:hover {
+            filter: brightness(1.2);
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>
+            PicClass
+            <span>推し活・画像整理ツール</span>
+        </h1>
+    </header>
+
+    <div class="container">
+
+        <div class="intro">
+            <h2>混沌とした画像フォルダに、AIという名の「秩序」を。</h2>
+            <p style="margin-top: 20px; font-size: 1.1em; color: #ccc;">
+                推し活で溢れかえる画像ファイル、テラバイト級のHDDに眠る膨大な写真たち。<br>
+                「保存」は簡単になりましたが、「整理」は人間が処理できる限界を超えつつあります。
+            </p>
+            <p style="font-size: 1.1em; color: #ccc;">
+                PicClassは、そんな現代の課題に一つの答えを出しました。<br>
+                <strong>「AIによる高度な類似画像選別能力」</strong>です。<br>
+                似ている画像を瞬時に判断し、あなたの代わりに整理をサポートします。
+            </p>
+        </div>
+
+        <div class="feature-grid">
+
+            <!-- Feature 1: Visual Sort -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="icon">�</span> <!-- Icon changed to Brain/AI -->
+                    <h3>AI Visual Sort (視覚的仕分け)</h3>
+                </div>
+                <div class="card-body">
+                    <span class="badge badge-new">Core Tech</span>
+                    <p><strong>「AIの眼」</strong>が、あなたの代わりに画像を精査します。<br>
+                        微妙な表情の違いや構図の類似性をAIが判断し、自動でグルーピング。</p>
+                    <ul>
+                        <li>AIによる高精度な類似画像選別</li>
+                        <li>ドラッグ＆ドロップで直感的に整理</li>
+                        <li>大量の未整理画像も一網打尽</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Feature 2: High Speed Sorting -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="icon">⚡</span>
+                    <h3>サクサク高速仕分け</h3>
+                </div>
+                <div class="card-body">
+                    <span class="badge badge-hot">Popular</span>
+                    <p>膨大な量の画像を処理するために最適化された操作性。<br>
+                        推し活だけでなく、<strong>写真を大量に保存する全ての方</strong>へ。</p>
+                    <ul>
+                        <li>キーボードとマウスで爆速処理</li>
+                        <li>不要な画像はワンタッチでゴミ箱へ</li>
+                        <li>テラバイト級の整理もストレスフリー</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Feature 3: Slideshow -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="icon">✨</span>
+                    <h3>没入型スライドショー</h3>
+                </div>
+                <div class="card-body">
+                    <p>整理された美しいコレクションを、心ゆくまで鑑賞。<br>
+                        思い出の写真も、推しの画像も、ランダム再生で新たな発見を。</p>
+                    <ul>
+                        <li>サブフォルダも含めた全画像再生</li>
+                        <li>全画面表示で世界観に浸る</li>
+                        <li>再生間隔を調整して自分好みに</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Feature 4: System Monitor -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="icon">�️</span>
+                    <h3>堅牢なシステム監視</h3>
+                </div>
+                <div class="card-body">
+                    <span class="badge badge-new">Safe</span>
+                    <p>大量のファイル操作はPCに負荷をかけます。<br>
+                        AI処理中もリソース状況を可視化し、安定した動作を保証します。</p>
+                    <ul>
+                        <li>CPU/メモリ使用状況をリアルタイム監視</li>
+                        <li>システム空き容量も常にチェック</li>
+                        <li>万が一のエラーもメールで即座に通知</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Feature 5: Portable EXE -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="icon">💼</span>
+                    <h3>ポータブル設計</h3>
+                </div>
+                <div class="card-body">
+                    <span class="badge badge-new">Anywhere</span>
+                    <p>環境を選ばず、どこでも整理を開始。<br>
+                        大容量HDDを持ち歩くフォトグラファーにも最適です。</p>
+                    <ul>
+                        <li>インストール不要の単体EXE</li>
+                        <li>USBメモリに入れて持ち運び可能</li>
+                        <li>複雑な環境構築は一切不要</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <div style="text-align: center; margin-top: 50px;">
+            <a href="#" onclick="alert('PicClass.exe をダブルクリックして起動するのじゃ！')" class="btn">今すぐ起動する</a>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2026 GazoTools Project - Created with ❤️ by Antigravity</p>
+    </footer>
+
+</body>
+
+</html>

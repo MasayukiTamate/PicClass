@@ -13,7 +13,14 @@ from tkinter import filedialog, simpledialog, messagebox
 from PIL import ImageTk, Image, ImageOps
 import math
 import ctypes
-from ctypes import wintypes
+# from ctypes import wintypes # EXE化環境での欠落を防ぐため手動定義するのじゃ
+
+# RECT構造体の手動定義なのじゃ
+class RECT(ctypes.Structure):
+    _fields_ = [("left", ctypes.c_long),
+                ("top", ctypes.c_long),
+                ("right", ctypes.c_long),
+                ("bottom", ctypes.c_long)]
 from lib.GazoToolsLib import GetKoFolder, GetGazoFiles
 from lib.GazoToolsData import (
     load_config, save_config, calculate_file_hash,
@@ -101,14 +108,15 @@ def open_visual_sort_window(target_path, app_state, move_callback, refresh_callb
         # action_type: "move", "copy", "trash"
         # file_list: 処理対象のファイルパスリスト
         # win_ref: VisualSortWindowのインスタンス（完了時クローズ用など）
-        def gui_logic_callback(action_type, file_list, win_ref):
+        def gui_logic_callback(action_type, file_list, win_ref, dest_path=None):
             success_count = 0
-            
-            # 登録フォルダへの移動・コピーの場合は、最初の登録先を使用する（簡易実装）
-            # 本来的にはどこに移動するか選べると良いが、Visual Sortでは「登録フォルダ（メインの移動先）」を想定
+
+            # dest_pathが渡された場合はそれを使用、なければ従来通り最初の有効なフォルダを使用
             dest_root = None
-            if app_state.move_dest_list and len(app_state.move_dest_list) > 0:
-                 # 空文字でない最初のフォルダを探す
+            if dest_path and os.path.exists(dest_path):
+                dest_root = dest_path
+            elif app_state.move_dest_list and len(app_state.move_dest_list) > 0:
+                 # 空文字でない最初のフォルダを探す（後方互換性）
                  for d in app_state.move_dest_list:
                      if d and os.path.exists(d):
                          dest_root = d
@@ -1585,7 +1593,8 @@ class GazoPicture():
         """Windows のタスクバーを除いた有効な画面領域（ワークエリア）を取得するのじゃ。のじゃ。"""
         try:
             user32 = ctypes.windll.user32
-            rect = wintypes.RECT()
+            # wintypes.RECT ではなく、ここで定義した RECT を使うのじゃ
+            rect = RECT()
             # SPI_GETWORKAREA (0x0030 = 48) を呼び出してワークエリアを取得するのじゃ
             if user32.SystemParametersInfoW(48, 0, ctypes.byref(rect), 0):
                 return rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top

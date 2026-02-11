@@ -1,0 +1,35 @@
+# 作業ログ
+
+## 2026-02-11
+- 09:53: 作業開始。現状確認とライブラリ特定完了。
+- 09:54: pip install 失敗。
+- 09:55: python -m pip install 実行。既にインストール済みであることを確認。
+- 09:56: import テストを行い、正常に動作することを確認したのじゃ。作業終了。
+- 10:21: エラー発生報告 (`ModuleNotFoundError: No module named 'torchvision'`)。
+- 10:23: 追加ライブラリ (torch, torchvision, numpy) のインストールを開始したのじゃ。
+- 10:25: インストール完了。動作確認スクリプトを実行し、正常にインポートできることを確認したのじゃ。
+- 10:27: エラー発生報告 (`ModuleNotFoundError: No module named 'send2trash'`)。
+- 10:28: `send2trash` をインストールし、インポート確認を完了したのじゃ。
+- 10:41: 視覚的仕分け機能（VisualSortWindow）の改善計画を立案。
+- 10:42: 実装開始。更新ボタンと動的リサイズ機能を追加。
+- 10:43: 実装完了。インポートチェックをパスしたのじゃ。
+- 10:47: 実行ファイル化 (EXE化) の要求。PyInstallerのインストール確認中。
+- 10:48: PyInstallerが見つからなかったのでインストールを開始したのじゃ。
+- 10:49: PyInstallerインストール完了。`build_exe.py` を修正し、アイコンと `tkinterdnd2` を含める設定を追加。
+- 10:50: EXEビルド開始。
+- 10:55: EXEビルド完了。ユーザーへ報告。
+- 10:59: ユーザーから `ImportError: cannot import name 'ttk'` の報告。
+- 11:00: `build_exe.py` に `hidden-import=tkinter.ttk` などを追加して修正。
+- 11:05: 再ビルド完了。構成確認済み。
+- 11:10: ユーザー要望により、初期ウィンドウ幅を 600 に変更。`config_defaults.py` と `GazoToolsApp.py` を修正。
+- 11:12: 変更反映のため、EXEの再ビルドを開始。
+- 11:15: ユーザー要望追加。エラーログのメール通知準備 (`tamaya2473616@gmail.com`)。`config_defaults.py` に設定を追加。
+- 11:16: ユーザー報告 `No module named 'send2trash'`。`build_exe.py` に `send2trash` 追加。
+- 11:18: `GazoToolsLogger.py` に `SMTPHandler` を追加し、メール通知機能を実装。
+- 11:21: `GazoToolsLogger.py` のインポート漏れを修正。
+- 11:23: 全ての修正を反映してEXEの再ビルドを開始したのじゃ。
+- 11:26: ユーザー要望により、ステータスバーに空きメモリと使用メモリを表示するように変更。
+- 11:28: コード修正の重複を解消。
+- 11:32: 再度EXEビルドを開始したのじゃ。
+- 11:42: ピックアップマニュアル (HTML) の作成とデザイン修正（緑系、タイトル倍）を行ったのじゃ。
+- 11:46: 視覚的仕分け機能に「全選択解除」ボタンを追加し、EXEビルドを開始したのじゃ。

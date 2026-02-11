@@ -11,17 +11,42 @@ print("Building GazoTools Executable...")
 
 # PyInstaller の実行
 # 注意: --exclude-module で指定したモジュールはEXEに含まれません。
-# これにより、distフォルダにコピーした .py ファイルが優先して読み込まれるようになります。
+# これにより、distフォルダにコピーした .py# これにより、EXE化後もスクリプトファイルの差し替えによるアップデートが可能になるのじゃ。
+try:
+    import tkinterdnd2
+    tkdnd_path = os.path.join(os.path.dirname(tkinterdnd2.__file__), 'tkdnd')
+    add_data_option = f'--add-data={tkdnd_path}{os.pathsep}tkinterdnd2/tkdnd'
+except ImportError:
+    tkdnd_path = ""
+    add_data_option = ""
+    print("Warning: tkinterdnd2 not found. D&D features might not work.")
+
 PyInstaller.__main__.run([
     SCRIPT_NAME,
     '--name=%s' % APP_NAME,
     '--onedir',        # 1つのディレクトリにまとめる
     '--noconsole',     # コンソール画面を出さない (デバッグ時は外しても良い)
     '--clean',         # キャッシュクリア
+    '-y',              # 出力ディレクトリを自動上書き
+    '--icon=PicClass.ico', # アイコン設定
+    add_data_option,   # tkinterdnd2のデータを追加
+
     '--exclude-module=GazoToolsLogic',  # ロジックを除外
     # libパッケージ全体を除外（個別に指定する必要があるかもだが、まずはパッケージ指定でトライ）
     '--exclude-module=lib',
+    '--hidden-import=ctypes.wintypes',
+    '--hidden-import=torch',
+    '--hidden-import=torchvision',
+    '--hidden-import=torchvision.models',
+    '--hidden-import=torchvision.transforms',
+    '--hidden-import=tkinter',
+    '--hidden-import=tkinter.ttk',
+    '--hidden-import=tkinter.messagebox',
+    '--hidden-import=tkinter.filedialog',
+    '--hidden-import=send2trash',
     # 必要に応じて追加のインポートを除外
+
+
     #'--exclude-module=PIL', # PILはEXEに含めたいので除外しない
     #'--exclude-module=tkinterdnd2', # これも含める
 ])

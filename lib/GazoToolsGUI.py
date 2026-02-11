@@ -1,7 +1,7 @@
 
 import os
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 from PIL import Image, ImageTk
 import random
 import threading
@@ -538,7 +538,48 @@ class VisualSortWindow(tk.Toplevel):
         self.all_results = []
         
         # データ読み込み開始
+        self.col_count = 5 # 初期カラム数
+        self.bind("<Configure>", self.on_resize) # リサイズイベント
+        self.resize_timer = None
+        
         self.start_analysis()
+
+    def on_refresh(self):
+        """再スキャンと再分析を実行するのじゃ"""
+        if self.is_loading: return
+        
+        # グリッドクリア
+        for widget in self.grid_frame.winfo_children():
+            widget.destroy()
+        self.candidates = []
+        self.all_results = []
+        
+        # 再分析
+        self.start_analysis()
+
+    def on_resize(self, event):
+        """ウィンドウリサイズ時の処理"""
+        # 幅が変わった場合のみ処理したいが、単純化のためデバウンス処理を入れる
+        if self.resize_timer:
+            self.after_cancel(self.resize_timer)
+        self.resize_timer = self.after(200, self._process_resize)
+        
+    def _process_resize(self):
+        """リサイズ後の実際の処理"""
+        try:
+            width = self.scroll_view.winfo_width() # スクロール領域の幅を使用
+            if width <= 100: return # 小さすぎる場合は無視
+            
+            # カード幅 200 + マージン 10 = 210px 程度と仮定
+            card_width = 220
+            new_col_count = max(1, width // card_width)
+            
+            if new_col_count != self.col_count:
+                self.col_count = new_col_count
+                self.refresh_grid()
+        except:
+            pass
+
 
     def init_top_frame(self):
         """上部：基準画像表示"""
@@ -579,15 +620,49 @@ class VisualSortWindow(tk.Toplevel):
         
         # 選択制御
         self.btn_select_all = tk.Button(self.frame_mid, text="全選択", command=self.select_all)
-        self.btn_select_all.pack(side=tk.LEFT, padx=10)
+        self.btn_select_all.pack(side=tk.LEFT, padx=(10, 2))
+        
+        self.btn_deselect_all = tk.Button(self.frame_mid, text="全解除", command=self.deselect_all)
+        self.btn_deselect_all.pack(side=tk.LEFT, padx=(2, 10))
+
         
         # アクションボタン
         btn_config = {'width': 12, 'pady': 2}
         
+        # 更新ボタン (NEW)
+        btn_refresh = tk.Button(self.frame_mid, text="更新 (Refresh)", bg="#eeeeee", command=self.on_refresh, **btn_config)
+        btn_refresh.pack(side=tk.LEFT, padx=5)
+
+
+        # 移動先選択Combobox（side=tk.RIGHTなので、先にpackしたものが右端に来る）
+        dest_options = []
+        self.dest_index_map = {}  # combobox index -> move_dest_list index
+        for i, d in enumerate(self.app_state.move_dest_list):
+            if d:
+                label = f"{i+1}: {os.path.basename(d)}"
+                dest_options.append(label)
+                self.dest_index_map[len(dest_options) - 1] = i
+
+        self.var_dest = tk.StringVar()
+        # 選択中フォルダの存在有無で色を変えるためのスタイル
+        self._dest_style = ttk.Style()
+        self._dest_style.map("Dest.TCombobox",
+                             foreground=[("readonly", "black")])
+        self.combo_dest = ttk.Combobox(self.frame_mid, textvariable=self.var_dest,
+                                        values=dest_options, state="readonly", width=20,
+                                        style="Dest.TCombobox")
+        if dest_options:
+            self.combo_dest.current(0)
+        self.combo_dest.bind("<<ComboboxSelected>>", self._on_dest_changed)
+        self.combo_dest.pack(side=tk.RIGHT, padx=5)
+        self._update_dest_color()
+
+        tk.Label(self.frame_mid, text="移動先:", bg="#444444", fg="white").pack(side=tk.RIGHT)
+
         # Move
         btn_move = tk.Button(self.frame_mid, text="移動 (Move)", bg="#ccccff", command=lambda: self.execute_action("move"), **btn_config)
         btn_move.pack(side=tk.RIGHT, padx=5)
-        
+
         # Copy
         btn_copy = tk.Button(self.frame_mid, text="コピー (Copy)", bg="#ccffcc", command=lambda: self.execute_action("copy"), **btn_config)
         btn_copy.pack(side=tk.RIGHT, padx=5)
@@ -700,8 +775,9 @@ class VisualSortWindow(tk.Toplevel):
         threshold = self.var_threshold.get()
         
         # グリッド配置
-        col_count = 5 # 1行5列
+        col_count = self.col_count
         row = 0
+
         col = 0
         
         visible_count = 0
@@ -766,14 +842,42 @@ class VisualSortWindow(tk.Toplevel):
         for c in self.candidates:
             c['widget'].var_selected.set(True)
 
+    def deselect_all(self):
+        # 全ての選択を解除
+        for c in self.candidates:
+            c['widget'].var_selected.set(False)
+
+
+    def _on_dest_changed(self, event=None):
+        """Combobox選択変更時に色を更新"""
+        self._update_dest_color()
+
+    def _update_dest_color(self):
+        """選択中の移動先フォルダの存在有無でComboboxテキスト色を変更"""
+        combo_idx = self.combo_dest.current()
+        if combo_idx >= 0 and combo_idx in self.dest_index_map:
+            list_idx = self.dest_index_map[combo_idx]
+            path = self.app_state.move_dest_list[list_idx]
+            if path and os.path.exists(path):
+                self._dest_style.map("Dest.TCombobox",
+                                     foreground=[("readonly", "black")])
+            else:
+                self._dest_style.map("Dest.TCombobox",
+                                     foreground=[("readonly", "red")])
+
     def execute_action(self, action_type):
         """選択されたファイルに対してアクションを実行"""
         targets = [c['path'] for c in self.candidates if c['widget'].var_selected.get()]
         if not targets:
             messagebox.showinfo("info", "画像が選択されていないのじゃ")
             return
-            
+
         if self.logic_callback:
-            # コールバックを呼ぶだけ
-            # logic側でウィンドウを更新するか、ここでrefresh_gridするか
-            self.logic_callback(action_type, targets, self)
+            # move/copy の場合、選択された移動先フォルダパスを渡す
+            dest_path = None
+            if action_type in ("move", "copy"):
+                combo_idx = self.combo_dest.current()
+                if combo_idx >= 0 and combo_idx in self.dest_index_map:
+                    list_idx = self.dest_index_map[combo_idx]
+                    dest_path = self.app_state.move_dest_list[list_idx]
+            self.logic_callback(action_type, targets, self, dest_path=dest_path)

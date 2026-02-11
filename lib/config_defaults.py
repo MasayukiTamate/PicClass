@@ -9,7 +9,7 @@ import os
 # ===========================
 # 1. ウィンドウサイズ関連の定数
 # ===========================
-DEFAULT_WINDOW_WIDTH = 800
+DEFAULT_WINDOW_WIDTH = 600
 DEFAULT_WINDOW_HEIGHT = 600
 
 MIN_WINDOW_WIDTH = 200
@@ -143,7 +143,16 @@ def get_default_config():
     """
     return {
         "last_folder": os.getcwd(),
+        "email_notification": {
+            "enabled": DEFAULT_ENABLE_EMAIL_LOGGING,
+            "smtp_server": DEFAULT_SMTP_SERVER,
+            "smtp_port": DEFAULT_SMTP_PORT,
+            "sender_email": DEFAULT_SENDER_EMAIL,
+            "sender_password": DEFAULT_SENDER_PASSWORD,
+            "recipient_email": DEFAULT_RECIPIENT_EMAIL
+        },
         "geometries": {
+
             "main": "",
             "folder": "",
             "file": ""
@@ -367,6 +376,20 @@ LOG_LEVEL_ERROR = "ERROR"
 DEFAULT_LOG_LEVEL = LOG_LEVEL_INFO
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+
+# ===========================
+# 13. メール通知設定
+# ===========================
+# Gmailなどを使用する場合の設定例
+# アプリパスワードの使用を推奨するのじゃ
+DEFAULT_SMTP_SERVER = "smtp.gmail.com"
+DEFAULT_SMTP_PORT = 587
+DEFAULT_SENDER_EMAIL = ""      # 送信元メールアドレス (ユーザー設定)
+DEFAULT_SENDER_PASSWORD = ""   # 送信元パスワード (またはアプリパスワード)
+DEFAULT_RECIPIENT_EMAIL = "tamaya2473616@gmail.com"  # エラー報告先
+DEFAULT_ENABLE_EMAIL_LOGGING = False  # デフォルトは無効 (設定後に有効化)
+
 
 
 if __name__ == "__main__":

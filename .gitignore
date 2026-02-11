@@ -1,0 +1,15 @@
+# ビルド成果物
+dist/
+build/
+PicClass/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# ログ
+logs/
+
+# テスト出力
+test_output.txt

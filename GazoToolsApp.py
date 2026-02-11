@@ -13,7 +13,9 @@ import tkinter as tk
 if getattr(sys, 'frozen', False):
     app_dir = os.path.dirname(sys.executable)
     sys.path.insert(0, app_dir)
+from lib.config_defaults import DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT
 from tkinter import filedialog, messagebox, simpledialog
+
 from PIL import ImageTk, Image
 from tkinterdnd2 import *
 import shutil
@@ -187,7 +189,7 @@ def refresh_ui(new_path):
     data_manager.SetGazoFiles(files, DEFOLDER, include_subfolders=app_state.ss_include_subfolders)
     GazoControl.SetFolder(DEFOLDER)
     
-    koRoot.title("画像tools - " + DEFOLDER)
+    koRoot.title("推し活推進tools - " + DEFOLDER)
     save_config(DEFOLDER)
     
     folder_listbox.delete(0, tk.END)
@@ -491,12 +493,12 @@ def toggle_ss():
         auto_slideshow()
 
 def reset_move_destinations():
-    """登録済みの移動先フォルダを全てリセットするのじゃ。のじゃ。"""
-    if not messagebox.askyesno("確認", "全ての登録フォルダ設定をリセットしても良いかの？"):
+    """登録済みの移動先フォルダを全てリセットしますね"""
+    if not messagebox.askyesno("確認", "全ての登録フォルダ設定をリセットしても良いですか？"):
         return
     app_state.reset_move_destinations()
     update_dd_display()
-    print("[RESET] 全ての移動先をリセットしたのじゃ。")
+    print("[RESET] 全ての移動先をリセットしました。")
 
 def on_closing_main():
     try:
@@ -582,12 +584,18 @@ def set_cpu_high_color():
 
 
 # ★ ここからリソース監視スレッドを起動 ★
-# ★ ここからリソース監視スレッドを起動 ★
 def _update_resource_usage():
     while True:
         try:
-            cpu = psutil.cpu_percent(interval=1)          # 1 秒ごとに測定
-            mem = psutil.Process().memory_info().rss // (1024 * 1024)  # MB 単位
+            # CPU 使用率 (1秒待機)
+            cpu = psutil.cpu_percent(interval=1)
+
+            # メモリ情報
+            process = psutil.Process()
+            mem_used_app = process.memory_info().rss // (1024 * 1024)  # アプリ使用メモリ (MB)
+            
+            vm = psutil.virtual_memory()
+            mem_free_sys = vm.available // (1024 * 1024)               # システム空きメモリ (MB)
             
             # メインスレッドでUI更新を行うためのクロージャ
             def update_ui():
@@ -595,18 +603,25 @@ def _update_resource_usage():
                     # CPU 使用率に応じて背景色をブレンド
                     ratio = min(cpu / 100.0, 1.0)
                     bg = blend_color(cpu_low_color.get(), cpu_high_color.get(), ratio)
-                    status_label.config(text=f"CPU: {cpu}%  MEM: {mem} MB", bg=bg)
+                    
+                    # テキスト更新: "CPU: 10%  App: 150MB  Free: 8192MB"
+                    status_text = f"CPU: {cpu}%  App: {mem_used_app}MB  Free: {mem_free_sys}MB"
+                    status_label.config(text=status_text, bg=bg)
                 except Exception:
                     pass # アプリ終了時などにエラーになるのを防ぐ
-
-            # メインスレッドにスケジュール
+            
+            # Tkinterのafterを使ってメインスレッドで実行
             if koRoot.winfo_exists():
                 koRoot.after(0, update_ui)
             else:
-                break # ウィンドウがなくなったら終了
-
+                break
+            
         except Exception:
-            break
+            # エラー時は少し待機して再開
+            time.sleep(1)
+            if not koRoot.winfo_exists():
+                break
+
 
 threading.Thread(target=_update_resource_usage, daemon=True).start()
 # ★ ここまで ★
@@ -614,24 +629,13 @@ threading.Thread(target=_update_resource_usage, daemon=True).start()
 # --- メニューに設定項目を追加 ---
 menubar = tk.Menu(koRoot)
 koRoot.config(menu=menubar)
-config_menu = tk.Menu(menubar, tearoff=0) 
 
-# 既存の config_menu 定義の直後に以下を追加
-resource_sub = tk.Menu(config_menu, tearoff=0)
-config_menu.add_cascade(label="リソース表示設定", menu=resource_sub)
-resource_sub.add_command(label="CPU低負荷時の色設定", command=set_cpu_low_color)
-resource_sub.add_command(label="CPU高負荷時の色設定", command=set_cpu_high_color)
-
-# スプラッシュ設定
-splash_sub = tk.Menu(config_menu, tearoff=0)
-config_menu.add_cascade(label="起動画面設定", menu=splash_sub)
+# スプラッシュ設定用変数
 splash_tips_var = tk.BooleanVar(value=app_state.show_splash_tips)
 def on_splash_tips_change():
     app_state.set_show_splash_tips(splash_tips_var.get())
-    # 設定保存
     cfg = app_state.to_dict()
     save_config(cfg["last_folder"], cfg["geometries"], cfg["settings"])
-splash_sub.add_checkbutton(label="起動時に豆知識(Tips)を表示", variable=splash_tips_var, command=on_splash_tips_change)
 
 # ベクトル表示設定ダイアログ
 def open_vector_settings():
@@ -704,12 +708,6 @@ def open_vector_settings():
     tk.Button(btn_frame, text="OK", width=10, command=on_ok).pack(side=tk.LEFT, padx=6)
     tk.Button(btn_frame, text="キャンセル", width=10, command=on_cancel).pack(side=tk.LEFT, padx=6)
 
-# メニューに追加
-config_menu.add_separator()
-config_menu.add_command(label="ベクトル表示設定...", command=open_vector_settings)
-
-
-
 file_menu = tk.Menu(menubar, tearoff=0)
 menubar.add_cascade(label="ファイル(F)", menu=file_menu)
 file_menu.add_command(label="フォルダを開く...", command=lambda: refresh_ui(safe_select_folder()))
@@ -749,6 +747,11 @@ view_menu = tk.Menu(menubar, tearoff=0)
 menubar.add_cascade(label="表示(V)", menu=view_menu)
 view_menu.add_checkbutton(label="フォルダ一覧を表示", variable=show_folder_win, command=update_visibility)
 view_menu.add_checkbutton(label="ファイル一覧を表示", variable=show_file_win, command=update_visibility)
+view_menu.add_separator()
+view_menu.add_checkbutton(label="評価ウィンドウを表示", variable=show_rating_win)
+view_menu.add_checkbutton(label="情報ウィンドウを表示", variable=show_info_win)
+view_menu.add_checkbutton(label="ベクトル情報を表示", variable=show_vector_win)
+view_menu.add_separator()
 view_menu.add_command(label="全ての画像を閉じる(R)", command=lambda: GazoControl.CloseAll())
 view_menu.add_command(label="全ての画像を整列(T)", command=lambda: GazoControl.TileWindows())
 view_menu.add_separator()
@@ -757,107 +760,64 @@ view_menu.add_command(label="全ての最前面表示をOFF", command=disable_al
 config_menu = tk.Menu(menubar, tearoff=0)
 menubar.add_cascade(label="設定(S)", menu=config_menu)
 
-# ランダム位置設定の変更をキャッチする関数
+# --- 変数定義とトレースコールバック（設定ダイアログから使用） ---
 def on_random_pos_change(*args):
     app_state.set_random_pos(GazoControl.random_pos.get())
-
 GazoControl.random_pos.trace_add("write", on_random_pos_change)
-config_menu.add_checkbutton(label="表示位置をランダムにする", variable=GazoControl.random_pos)
 
-# ランダムサイズ設定の変更をキャッチする関数
 def on_random_size_change(*args):
     app_state.set_random_size(GazoControl.random_size.get())
-
 GazoControl.random_size.trace_add("write", on_random_size_change)
-config_menu.add_checkbutton(label="表示サイズをランダムにする", variable=GazoControl.random_size)
 
-config_menu.add_separator()
-
-# 評価ウィンドウ表示設定の変更をキャッチする関数
 def on_show_rating_change(*args):
     app_state.show_rating_window = show_rating_win.get()
     if app_state.show_rating_window and hasattr(GazoControl, '_current_image_hash') and GazoControl._current_image_hash:
         GazoControl.update_rating_window(GazoControl._current_image_hash)
     elif hasattr(GazoControl, '_rating_window') and GazoControl._rating_window:
         GazoControl._rating_window.withdraw()
-    # 画像ウィンドウのサイズも調整
     update_open_windows_size()
-
 show_rating_win.trace_add("write", on_show_rating_change)
-config_menu.add_checkbutton(label="評価ウィンドウを表示", variable=show_rating_win)
 
-# 情報ウィンドウ表示設定の変更をキャッチする関数
 def on_show_info_change(*args):
     app_state.show_info_window = show_info_win.get()
     if app_state.show_info_window and hasattr(GazoControl, '_current_image_hash') and GazoControl._current_image_hash:
-        # 現在の画像情報を取得して更新
         if hasattr(GazoControl, 'tag_dict') and GazoControl._current_image_hash in GazoControl.tag_dict:
-            # 画像パスを取得（保存されている場合は使用）
             image_path = getattr(GazoControl, '_current_image_path', '')
             if not image_path:
-                # パスがわからない場合は更新しない
                 return
-            # サイズ情報なども必要だが、簡易的に更新
             GazoControl.update_info_window(image_path, GazoControl._current_image_hash)
     elif hasattr(GazoControl, '_info_window') and GazoControl._info_window:
         GazoControl._info_window.withdraw()
-
 show_info_win.trace_add("write", on_show_info_change)
-config_menu.add_checkbutton(label="情報ウィンドウを表示", variable=show_info_win)
 
-# ベクトル表示設定の変更をキャッチする関数
 def on_show_vector_change(*args):
     app_state.vector_display["enabled"] = show_vector_win.get()
-    # 現在表示中の画像ウィンドウのサイズを調整
     update_open_windows_size()
-
 show_vector_win.trace_add("write", on_show_vector_change)
-config_menu.add_checkbutton(label="ベクトル情報を表示", variable=show_vector_win)
 
-# ベクトル数値表示設定の変更をキャッチする関数
 show_vector_values = tk.BooleanVar(value=app_state.vector_display.get("show_internal_values", False))
-
 def on_show_vector_values_change(*args):
     app_state.vector_display["show_internal_values"] = show_vector_values.get()
-    # 表示内容を更新するためのトリガー（ウィンドウサイズ調整で再描画されるか？）
-    # GazoPicture.update_rating_windowなどは再描画するが、ベクトルテキストは再生成が必要。
-    # ここでは簡易的に全ウィンドウ再調整を呼ぶが、テキスト内容は再生成されないかも。
-    # 本当は interpret_vector を呼び直す必要があるが、GazoPicture側で描画時に呼ばれるはず。
-    # しかし既存のラベルのテキストを変えるには、Logic側の更新が必要。
-    # 簡易実装として、次の描画（次画像表示）から反映される、でも良いが、即時反映したい。
-    # update_open_windows_size() は pack/unpack だけ。
-    # 即時反映は少し手間なので、一旦変数の更新だけにする。ユーザーが画像を切り替えれば反映される。
-    pass
-
 show_vector_values.trace_add("write", on_show_vector_values_change)
-config_menu.add_checkbutton(label="└ 内部数値も表示する", variable=show_vector_values)
 
-# 自動ベクトル計算設定
 auto_vectorize = tk.BooleanVar(value=app_state.vector_display.get("auto_vectorize", True))
 def on_auto_vectorize_change(*args):
     app_state.vector_display["auto_vectorize"] = auto_vectorize.get()
-
 auto_vectorize.trace_add("write", on_auto_vectorize_change)
-config_menu.add_checkbutton(label="└ 未登録なら自動で計算する", variable=auto_vectorize)
 
-
-# 開いているウィンドウのサイズを再調整する関数
 def update_open_windows_size():
     """設定変更時に開いている画像ウィンドウのサイズとUI要素を再調整"""
     if hasattr(GazoControl, 'open_windows') and GazoControl.open_windows:
         for win in list(GazoControl.open_windows.values()):
             try:
                 if hasattr(win, '_image_hash') and win._image_hash:
-                    # UI要素の表示/非表示を更新
                     for child in win.winfo_children():
                         if isinstance(child, tk.Frame):
                             for subchild in child.winfo_children():
                                 if isinstance(subchild, tk.Label) and hasattr(subchild, 'cget'):
-                                    # ベクトル表示ラベルを探す
                                     try:
                                         current_text = subchild.cget('text')
                                         if current_text and (current_text.startswith('(') or '解釈' in current_text or 'エラー' in current_text):
-                                            # ベクトル表示ラベルの場合
                                             if app_state.vector_display.get("enabled", True):
                                                 if not subchild.winfo_ismapped():
                                                     subchild.pack(side=tk.TOP, fill=tk.X, padx=4, pady=(4,6))
@@ -866,13 +826,7 @@ def update_open_windows_size():
                                                     subchild.pack_forget()
                                     except:
                                         pass
-
-                                # 評価UIは画像ウィンドウ内には表示しないため、処理しない
-
-                    # ウィンドウのサイズを再計算
                     width = win.winfo_width()
-
-                    # 画像キャンバスの高さを取得
                     image_height = 0
                     for child in win.winfo_children():
                         if isinstance(child, tk.Frame):
@@ -881,58 +835,118 @@ def update_open_windows_size():
                                     image_height = subchild.winfo_height()
                                     break
                             break
-
                     if image_height > 0:
-                        # UI要素の高さを再計算（評価UIは画像ウィンドウ内には表示しない）
                         text_area_h = 0
                         if app_state.vector_display.get("enabled", True):
                             text_area_h += 40
-                        # 評価UIの高さは加算しない
-
-                        # 新しいウィンドウ高さを設定
                         new_height = image_height + text_area_h
                         win.geometry(f"{width}x{new_height}")
             except Exception as e:
                 logger.error(f"ウィンドウサイズ更新エラー: {e}")
 
-show_vector_win.trace_add("write", on_show_vector_change)
-config_menu.add_checkbutton(label="ベクトル表示を有効にする", variable=show_vector_win)
-
-config_menu.add_separator()
-config_menu.add_checkbutton(label="スクリーンセーバー(自動再生)", variable=ss_mode, command=toggle_ss)
-
-ss_sub = tk.Menu(config_menu, tearoff=0)
-config_menu.add_cascade(label="SS設定", menu=ss_sub)
-
-# 再生間隔
-ss_interval_menu = tk.Menu(ss_sub, tearoff=0)
-ss_sub.add_cascade(label="再生間隔（秒）", menu=ss_interval_menu)
-for sec in SS_INTERVAL_OPTIONS:
-    ss_interval_menu.add_radiobutton(label=f"{sec}秒", variable=ss_interval, value=sec)
-
-# AI設定
-ss_sub.add_separator()
-ss_sub.add_checkbutton(label="AI類似度順で再生", variable=ss_ai_mode)
-
-def set_ai_threshold():
-    val = simpledialog.askfloat("AI設定", "類似度スコアの閾値(0.0〜1.0)を設定してほしいのじゃ：", 
-                                initialvalue=ss_ai_threshold.get(), minvalue=MIN_AI_THRESHOLD, maxvalue=MAX_AI_THRESHOLD)
-    if val is not None:
-        ss_ai_threshold.set(val)
-        app_state.set_ss_ai_threshold(val)
-
-ss_sub.add_command(label="類似度の閾値を設定...", command=set_ai_threshold)
-
-# 子フォルダを含める設定
-ss_sub.add_separator()
-
 def on_include_subfolders_change():
     """子フォルダを含める設定を変更した時の処理"""
     app_state.set_ss_include_subfolders(ss_include_subfolders.get())
-    # 現在のフォルダで画像リストを再構築
     refresh_ui(DEFOLDER)
 
-ss_sub.add_checkbutton(label="子フォルダの画像も含める", variable=ss_include_subfolders, command=on_include_subfolders_change)
+# --- 設定ダイアログ ---
+def open_settings_dialog():
+    """全ての設定項目を一つのダイアログにまとめて表示する"""
+    dlg = tk.Toplevel(koRoot)
+    dlg.title("設定")
+    dlg.attributes("-topmost", True)
+    dlg.geometry("480x620")
+    dlg.resizable(False, False)
+
+    # スクロール対応
+    canvas = tk.Canvas(dlg)
+    scrollbar = tk.Scrollbar(dlg, orient="vertical", command=canvas.yview)
+    scroll_frame = tk.Frame(canvas)
+    scroll_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+    canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    # マウスホイールでスクロール
+    def _on_mousewheel(event):
+        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+    canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+    # === 表示設定 ===
+    sec1 = tk.LabelFrame(scroll_frame, text="表示設定", padx=10, pady=5)
+    sec1.pack(fill=tk.X, padx=10, pady=5)
+    tk.Checkbutton(sec1, text="表示位置をランダムにする", variable=GazoControl.random_pos).pack(anchor="w")
+    tk.Checkbutton(sec1, text="表示サイズをランダムにする", variable=GazoControl.random_size).pack(anchor="w")
+
+    # === ベクトル設定 ===
+    sec2 = tk.LabelFrame(scroll_frame, text="ベクトル設定", padx=10, pady=5)
+    sec2.pack(fill=tk.X, padx=10, pady=5)
+    tk.Checkbutton(sec2, text="内部数値も表示する", variable=show_vector_values).pack(anchor="w")
+    tk.Checkbutton(sec2, text="未登録なら自動で計算する", variable=auto_vectorize).pack(anchor="w")
+    tk.Button(sec2, text="ベクトル表示の詳細設定...", command=open_vector_settings).pack(fill=tk.X, pady=(5, 0))
+
+    # === スクリーンセーバー設定 ===
+    sec3 = tk.LabelFrame(scroll_frame, text="スクリーンセーバー設定", padx=10, pady=5)
+    sec3.pack(fill=tk.X, padx=10, pady=5)
+
+    interval_frame = tk.Frame(sec3)
+    interval_frame.pack(fill=tk.X, pady=2)
+    tk.Label(interval_frame, text="再生間隔:").pack(side=tk.LEFT)
+    for sec in SS_INTERVAL_OPTIONS:
+        tk.Radiobutton(interval_frame, text=f"{sec}秒", variable=ss_interval, value=sec).pack(side=tk.LEFT)
+
+    tk.Checkbutton(sec3, text="AI類似度順で再生", variable=ss_ai_mode).pack(anchor="w")
+
+    threshold_frame = tk.Frame(sec3)
+    threshold_frame.pack(fill=tk.X, pady=2)
+    tk.Label(threshold_frame, text="類似度閾値:").pack(side=tk.LEFT)
+    threshold_entry = tk.Entry(threshold_frame, textvariable=ss_ai_threshold, width=8)
+    threshold_entry.pack(side=tk.LEFT, padx=5)
+
+    tk.Checkbutton(sec3, text="子フォルダの画像も含める", variable=ss_include_subfolders,
+                   command=on_include_subfolders_change).pack(anchor="w")
+
+    # === 移動先設定 ===
+    sec4 = tk.LabelFrame(scroll_frame, text="移動先設定", padx=10, pady=5)
+    sec4.pack(fill=tk.X, padx=10, pady=5)
+
+    count_frame = tk.Frame(sec4)
+    count_frame.pack(fill=tk.X, pady=2)
+    tk.Label(count_frame, text="移動先フォルダ数:").pack(side=tk.LEFT)
+    for c in MOVE_DESTINATION_OPTIONS:
+        tk.Radiobutton(count_frame, text=f"{c}個", variable=count_var, value=c, command=change_move_count).pack(side=tk.LEFT)
+
+    tk.Button(sec4, text="全登録フォルダをリセット", command=reset_move_destinations, bg="#fff0f0").pack(fill=tk.X, pady=(5, 0))
+
+    # === 詳細設定 ===
+    sec5 = tk.LabelFrame(scroll_frame, text="詳細設定", padx=10, pady=5)
+    sec5.pack(fill=tk.X, padx=10, pady=5)
+    tk.Button(sec5, text="画像表示サイズ設定...", command=open_image_size_settings).pack(fill=tk.X, pady=2)
+    tk.Button(sec5, text="評価UI設定...", command=open_rating_ui_settings).pack(fill=tk.X, pady=2)
+
+    # === リソース・起動画面設定 ===
+    sec6 = tk.LabelFrame(scroll_frame, text="その他", padx=10, pady=5)
+    sec6.pack(fill=tk.X, padx=10, pady=5)
+
+    cpu_frame = tk.Frame(sec6)
+    cpu_frame.pack(fill=tk.X, pady=2)
+    tk.Label(cpu_frame, text="CPU色:").pack(side=tk.LEFT)
+    tk.Button(cpu_frame, text="低負荷時", command=set_cpu_low_color, width=10).pack(side=tk.LEFT, padx=3)
+    tk.Button(cpu_frame, text="高負荷時", command=set_cpu_high_color, width=10).pack(side=tk.LEFT, padx=3)
+
+    tk.Checkbutton(sec6, text="起動時に豆知識(Tips)を表示", variable=splash_tips_var,
+                   command=on_splash_tips_change).pack(anchor="w")
+    tk.Button(sec6, text="全ての最前面表示をOFF", command=disable_all_topmost, bg="#fff0f0").pack(fill=tk.X, pady=(5, 0))
+
+    # 閉じるボタン
+    tk.Button(scroll_frame, text="閉じる", width=15, command=lambda: (canvas.unbind_all("<MouseWheel>"), dlg.destroy())).pack(pady=10)
+
+# --- 設定メニュー構築（ウィンドウ表示系のみ） ---
+
+config_menu.add_command(label="常に最前面(T) ON/OFF", command=lambda: koRoot.attributes("-topmost", not koRoot.attributes("-topmost")))
+config_menu.add_separator()
+config_menu.add_command(label="設定...", command=open_settings_dialog)
 
 # ツールメニュー
 tools_menu = tk.Menu(menubar, tearoff=0)
@@ -966,6 +980,7 @@ def run_vector_update():
     processor = VectorBatchProcessor(DEFOLDER, on_progress, on_finish)
     processor.start()
 
+tools_menu.add_checkbutton(label="スクリーンセーバー(自動再生)", variable=ss_mode, command=toggle_ss)
 tools_menu.add_command(label="AIベクトルを更新・作成", command=run_vector_update)
 
 def run_visual_sort():
@@ -1004,15 +1019,6 @@ def change_move_count():
     else:
         messagebox.showerror("エラー", "無効な個数です")
         count_var.set(app_state.move_dest_count)
-
-count_sub = tk.Menu(config_menu, tearoff=0)
-config_menu.add_cascade(label="移動先フォルダ数", menu=count_sub)
-for c in MOVE_DESTINATION_OPTIONS:
-    count_sub.add_radiobutton(label=f"{c}個", variable=count_var, value=c, command=change_move_count)
-
-config_menu.add_separator()
-config_menu.add_command(label="全登録フォルダをリセット", command=reset_move_destinations)
-config_menu.add_separator()
 
 # 画像表示サイズ設定ダイアログ
 def open_image_size_settings():
@@ -1065,8 +1071,6 @@ def open_image_size_settings():
     btn_frame.grid(row=4, column=0, columnspan=2, pady=10)
     tk.Button(btn_frame, text="OK", width=10, command=on_ok).pack(side=tk.LEFT, padx=5)
     tk.Button(btn_frame, text="キャンセル", width=10, command=on_cancel).pack(side=tk.LEFT, padx=5)
-
-config_menu.add_command(label="画像表示サイズ設定...", command=open_image_size_settings)
 
 # 評価UI設定ダイアログ
 def open_rating_ui_settings():
@@ -1217,10 +1221,6 @@ def open_rating_ui_settings():
     tk.Button(btn_frame, text="保存", command=on_save).pack(side=tk.LEFT, padx=10)
     tk.Button(btn_frame, text="キャンセル", command=on_cancel).pack(side=tk.LEFT, padx=10)
 
-config_menu.add_command(label="評価UI設定...", command=open_rating_ui_settings)
-config_menu.add_separator()
-config_menu.add_command(label="常に最前面(T) ON/OFF", command=lambda: koRoot.attributes("-topmost", not koRoot.attributes("-topmost")))
-
 all_items = os.listdir(DEFOLDER)
 folder_win, folder_listbox = create_folder_list_window(koRoot, GetKoFolder(all_items, DEFOLDER))
 file_win, file_listbox = create_file_list_window(koRoot, GetGazoFiles(all_items, DEFOLDER), GazoControl.Drawing)
@@ -1237,11 +1237,14 @@ def toggle_vector_window():
     else:
         vector_window.show()
 
-vector_sub = tk.Menu(config_menu, tearoff=0)
-config_menu.add_cascade(label="ベクトルウィンドウ", menu=vector_sub)
-vector_sub.add_command(label="表示/非表示", command=toggle_vector_window)
+config_menu.add_command(label="ベクトルウィンドウ 表示/非表示", command=toggle_vector_window)
 
-if "main" in SAVED_GEOS: koRoot.geometry(SAVED_GEOS["main"])
+if "main" in SAVED_GEOS and SAVED_GEOS["main"]:
+    koRoot.geometry(SAVED_GEOS["main"])
+else:
+    # 初期サイズ設定 (ユーザー要望: 幅600)
+    koRoot.geometry(f"{DEFAULT_WINDOW_WIDTH}x{DEFAULT_WINDOW_HEIGHT}")
+
 if "folder" in SAVED_GEOS: folder_win.geometry(SAVED_GEOS["folder"])
 if "file" in SAVED_GEOS: file_win.geometry(SAVED_GEOS["file"])
 
@@ -1281,7 +1284,15 @@ def handle_drop_register(event):
         messagebox.showwarning("注意", "ここはフォルダ登録用なのじゃ！ファイルを動かしたいなら下へ入れるのじゃ。")
 
 lbl_reg.dnd_bind("<<Drop>>", handle_drop_register)
-lbl_reg.pack(fill=tk.BOTH, padx=5, pady=(5, 15)) # 15ピクセルの余白をあけるのじゃ
+lbl_reg.pack(fill=tk.BOTH, padx=5, pady=(5, 5))
+
+# ガイドテキスト
+lbl_dd_guide = tk.Label(koRoot, text="↑ 登録したいフォルダをD&Dしてください", font=("MS Gothic", 9), fg="#888888")
+lbl_dd_guide.pack(fill=tk.X, padx=5, pady=(0, 3))
+
+# 視覚的仕分けボタン
+btn_visual_sort = tk.Button(koRoot, text="AI Visual Sort 機能(視覚的仕分け)ボタン", command=run_visual_sort, bg="#e8f0fe", font=("MS Gothic", 10), relief="groove", cursor="hand2")
+btn_visual_sort.pack(fill=tk.X, padx=5, pady=(0, 10))
 
 # 移動エリアを保持するフレーム
 move_frame = tk.Frame(koRoot)
@@ -1349,7 +1360,7 @@ def rebuild_move_area():
                             execute_move(p, app_state.move_dest_list[idx], refresh=False)
                             count += 1
                         elif os.path.isdir(p):
-                             messagebox.showwarning("注意", f"フォルダは移動できないのじゃ: {p}")
+                             messagebox.showwarning("注意", f"フォルダは移動できないです。画像ファイルをドラックしてください。: {p}")
                     
                     if count > 0:
                         refresh_ui(DEFOLDER)

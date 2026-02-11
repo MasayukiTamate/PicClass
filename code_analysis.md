@@ -1,71 +1,43 @@
-# コード分析レポート (Code Analysis Report)
+# コード詳細分析 (code_analysis.md)
 
-## 概要 (Overview)
+## 対象ファイル
+- GazoToolsApp.py
 
-本レポートは、`GazoTools` プロジェクトの現状のコードベースを分析し、最近の変更点、改善された箇所、および残存する課題についてまとめたものです。
+## 概要
+このファイルは「GazoTools」という画像ビューアアプリケーションのメインエントリーポイントであり、UI（Tkinter）の構築とイベント処理を担当しているのじゃ。
 
-## 最近の変更と改善 (Recent Changes & Improvements)
+## 構造分析
+### 1. インポートと初期化
+- **標準ライブラリ**: os, sys, shutil, time, threading
+- **UIライブラリ**: tkinter (filedialog, messagebox, simpledialog), tkinterdnd2 (D&D対応)
+- **画像処理**: Pillow (Image, ImageTk)
+- **システム監視**: psutil
+- **自作モジュール**:
+  - `lib.GazoToolsLogger`: ログ出力
+  - `GazoToolsLogic`: コアロジック（設定管理、データ操作、画像処理）
+  - `lib.GazoToolsImageCache`: 画像キャッシング
+  - `lib.GazoToolsGUI`: UIコンポーネント（スプラッシュ画面など）
 
-### 1. マージ競合と循環参照の解消
+### 2. アプリケーションの状態管理
+- `app_state = get_app_state()` で状態を一元管理している。
+- `on_app_state_changed` コールバックにより、状態変化時にUIを自動更新する設計になっている（Observerパターン）。
 
-* **事象**: `git pull` による `GazoToolsApp.py` と `GazoToolsLogic.py` のマージ競合、およびその後の `VectorEngine` インポートによる循環参照エラー。
-* **対応**:
-  * 手動でのコンフリクトマーカー除去とロジックの復元。
-  * `lib/GazoToolsData.py` における `GazoToolsAI` のインポートをトップレベルから `GetNextAIImage` 関数内に移動し、import時の循環依存を解決。
+### 3. UI構成
+- **メインウィンドウ (`koRoot`)**: 画像表示エリア、D&Dターゲットエリア、ステータスバー。
+- **フォルダ一覧ウィンドウ (`folder_win`)**: 左側のツリー構造に相当。
+- **ファイル一覧ウィンドウ (`file_win`)**: フォルダ内の画像リスト。
+- **スプラッシュ画面 (`SplashWindow`)**: 起動時に表示。
 
-### 2. ロジックの重複排除と集約 (DRY原則)
+### 4. 機能詳細
+- **画像表示**: `GazoPicture` クラス（`GazoControl` インスタンス）が担当。
+- **スライドショー**: `auto_slideshow` 関数で定期的に画像を切り替え。AIによる画像選別機能 (`ss_ai_mode`) もあるようだが、詳細は `GazoToolsLogic` に委譲されている。
+- **ファイル操作**: ファイル名の変更、フォルダ移動、タグ付けなどの機能がコンテキストメニューから利用可能。
+- **リソース監視**: 別スレッドで `psutil` を使いCPUとメモリ使用率を監視し、ステータスバーに表示。CPU負荷に応じて背景色が変わる視覚的フィードバックがある。
+- **設定保存**: アプリ終了時 (`on_closing_main`) に設定と評価データをJSON形式などで保存。
 
-* **事象**: `GazoToolsLogic.py` が `lib/GazoToolsData.py` と同等の機能（`load_config`, `save_tags` など）を独自に実装しており、一部の機能（`assigned_rating`対応など）で実装ごとの差異（スプリットブレイン）が発生していた。
-* **対応**:
-  * `GazoToolsLogic.py` 内の重複関数定義を削除。
-  * `lib/GazoToolsData.py` に最新のロジック（`assigned_rating` 対応版）を統合。
-  * `GazoToolsLogic.py` から `lib/GazoToolsData.py` をインポートして利用するように変更。これにより、データアクセスのロジックが一元化されました。
+## 依存関係
+外部ライブラリとして `Pillow`, `tkinterdnd2`, `psutil` が必須。
 
-### 3. 不足関数の実装
-
-* **事象**: `blend_color` 関数や一部のUIコンポーネント（`SplashWindow`, `SimilarityMoveDialog`）がインポートできず `NameError` が発生。
-* **対応**:
-  * `lib/GazoToolsBasicLib.py` に `blend_color` を実装。
-  * `GazoToolsApp.py` で適切なモジュール（`lib.GazoToolsGUI`, `lib.GazoToolsBasicLib`）からのインポートを追加。
-
-### 4. AI Visual Sort 機能の実装
-
-* **概要**: 類似画像検索の結果を視覚的に確認しながら、選択的に移動・コピー・削除を行うための専用GUIツールを追加しました。
-* **構成**:
-  * **lib/GazoToolsGUI.py**: `VisualSortWindow` クラスを追加。Tkinterの `Toplevel` を継承し、ターゲット画像、操作パネル、スクロール可能な結果リスト (`ScrollableFrame`) を構築。
-  * **GazoToolsLogic.py**: `open_visual_sort_window` 関数を追加。GUIとバックエンドロジック（ベクトル計算、ファイル操作コールバック）の橋渡しを行う。
-  * **GazoToolsApp.py**: メニューバーおよびコンテキストメニューに起動エントリを追加。
-* **特記事項**: 循環参照を避けるため、`GazoToolsLogic.py` 内で `VisualSortWindow` をローカルインポートする形をとっています。
-
-## アプリケーション構造 (Application Structure)
-
-### モジュール構成
-
-* **GazoToolsApp.py**: エントリーポイント。メインウィンドウ設定、イベントバインディング、UI構築を担当。
-* **GazoToolsLogic.py**: 主なビジネスロジック。ウィンドウレイアウト計算 (`calculate_window_layout`)、画像制御 (`GazoPicture`) などを担当。現在は `lib` 以下のモジュールへの依存度を高め、コード量が削減傾向にある。
-* **lib/**: 機能ごとに分割されたライブラリ群。
-  * `GazoToolsData.py`: 設定、タグ、評価、ベクトルデータの読み書きおよび `HakoData`（データ保持）。
-  * `GazoToolsAI.py`: AIモデル (`VectorEngine`) とバックグラウンド処理 (`VectorBatchProcessor`)。
-  * `GazoToolsGUI.py`: 再利用可能なUIコンポーネント (`SplashWindow`, `SimilarityMoveDialog`, `ScrollableFrame`)。
-  * `GazoToolsBasicLib.py`: 基本的なユーティリティ関数。
-
-## 残存する課題と推奨事項 (Remaining Issues & Recommendations)
-
-### 1. 巨大なクラスとファイル (God Class/File)
-
-* **GazoToolsApp.py**: 依然としてUI構築ロジックが集中しており、可読性が低い。特に `setup_main_window` やドラッグ＆ドロップ関連の処理が長い。
-* **改善案**: UIパーツごとのクラス化を進め、`lib/GazoToolsGUI.py` 等へさらに委譲する。
-
-### 2. グローバル状態依存
-
-* **GazoToolsLogic.py**: `GazoPicture` クラスなどでクラス変数 (`_info_window` 等) やグローバルな状態に依存している箇所がある。
-* **改善案**: 状態管理を `AppState` クラスにさらに集約し、依存関係を明確にする。
-
-### 3. テストカバレッジ
-
-* **現状**: 手動テストと起動確認が主である。
-* **改善案**: 特に `lib` 以下の純粋な関数群（データ操作、計算ロジック）に対して単体テストを追加し、リファクタリング時の安全性を高める。
-
-## 結論 (Conclusion)
-
-今回の改修により、致命的な起動エラーとマージ競合は解消され、コードの重複も削減されました。特にデータアクセス層の一元化は保守性向上に大きく寄与します。今後はUIロジックの分離とテストの拡充が次のステップとなります。
+## コメント
+全体的にモジュール化が進んでおり、LogicとUIの分離が意識されている。特に `AppState` を用いた状態管理は拡張性が高い良い設計じゃ。
+今後の拡張（ログウィンドウなど）もこのパターンに従うのが望ましいのじゃ。
