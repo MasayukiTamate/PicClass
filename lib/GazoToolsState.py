@@ -39,9 +39,9 @@ class AppState:
         self.move_dest_count = 2
         
         # UI 表示設定
-        self.show_folder_window = True
-        self.show_file_window = True
-        self.show_rating_window = True     # 評価ウィンドウ表示
+        self.show_folder_window = False
+        self.show_file_window = False
+        self.show_rating_window = False    # 評価ウィンドウ表示
         self.show_info_window = False      # 情報ウィンドウ表示
         self.show_vector_window = False    # ベクトルウィンドウ表示 (初期値False)
         self.random_pos = False
@@ -492,9 +492,9 @@ class AppState:
                 self.random_pos = settings.get("random_pos", False)
                 self.random_size = settings.get("random_size", False)
                 self.topmost = settings.get("topmost", True)
-                self.show_folder_window = settings.get("show_folder", True)
-                self.show_file_window = settings.get("show_file", True)
-                self.show_rating_window = settings.get("show_rating_window", True)
+                self.show_folder_window = settings.get("show_folder", False)
+                self.show_file_window = settings.get("show_file", False)
+                self.show_rating_window = settings.get("show_rating_window", False)
                 self.show_vector_window = settings.get("show_vector_window", False)
                 self.show_info_window = settings.get("show_info_window", False)
                 self.rating_ui = settings.get("rating_ui", {

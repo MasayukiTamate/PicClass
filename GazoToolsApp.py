@@ -51,6 +51,12 @@ app_state = get_app_state()
 # --- タイトル（スプラッシュ画面）表示：最優先なのじゃ ---
 koRoot = TkinterDnD.Tk()
 koRoot.withdraw() # メインウィンドウを隠す
+
+# --- アイコン設定：全ウィンドウ共通 ---
+_icon_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+_icon_path = os.path.join(_icon_dir, 'PicClass.ico')
+if os.path.exists(_icon_path):
+    koRoot.iconbitmap(default=_icon_path)
 splash = SplashWindow(koRoot)
 
 def close_splash():
@@ -189,7 +195,7 @@ def refresh_ui(new_path):
     data_manager.SetGazoFiles(files, DEFOLDER, include_subfolders=app_state.ss_include_subfolders)
     GazoControl.SetFolder(DEFOLDER)
     
-    koRoot.title("推し活推進tools - " + DEFOLDER)
+    koRoot.title("画像整理（推し活）tools - " + DEFOLDER)
     save_config(DEFOLDER)
     
     folder_listbox.delete(0, tk.END)
@@ -751,6 +757,7 @@ view_menu.add_separator()
 view_menu.add_checkbutton(label="評価ウィンドウを表示", variable=show_rating_win)
 view_menu.add_checkbutton(label="情報ウィンドウを表示", variable=show_info_win)
 view_menu.add_checkbutton(label="ベクトル情報を表示", variable=show_vector_win)
+view_menu.add_command(label="ベクトルウィンドウ 表示/非表示", command=lambda: toggle_vector_window())
 view_menu.add_separator()
 view_menu.add_command(label="全ての画像を閉じる(R)", command=lambda: GazoControl.CloseAll())
 view_menu.add_command(label="全ての画像を整列(T)", command=lambda: GazoControl.TileWindows())
@@ -887,7 +894,7 @@ def open_settings_dialog():
     tk.Button(sec2, text="ベクトル表示の詳細設定...", command=open_vector_settings).pack(fill=tk.X, pady=(5, 0))
 
     # === スクリーンセーバー設定 ===
-    sec3 = tk.LabelFrame(scroll_frame, text="スクリーンセーバー設定", padx=10, pady=5)
+    sec3 = tk.LabelFrame(scroll_frame, text="スライドショー設定", padx=10, pady=5)
     sec3.pack(fill=tk.X, padx=10, pady=5)
 
     interval_frame = tk.Frame(sec3)
@@ -980,7 +987,8 @@ def run_vector_update():
     processor = VectorBatchProcessor(DEFOLDER, on_progress, on_finish)
     processor.start()
 
-tools_menu.add_checkbutton(label="スクリーンセーバー(自動再生)", variable=ss_mode, command=toggle_ss)
+tools_menu.add_checkbutton(label="スライドショー(自動再生)", variable=ss_mode, command=toggle_ss)
+tools_menu.add_separator()
 tools_menu.add_command(label="AIベクトルを更新・作成", command=run_vector_update)
 
 def run_visual_sort():
@@ -1008,7 +1016,8 @@ def run_visual_sort():
     except Exception as e:
         logger.error(f"Visual Sort Launch Error: {e}")
         messagebox.showerror("エラー", f"起動に失敗したのじゃ: {e}")
-
+        
+tools_menu.add_separator()
 tools_menu.add_command(label="AI Visual Sort (視覚的仕分け)", command=run_visual_sort)
 
 # 移動先フォルダ数の設定メニュー
@@ -1237,7 +1246,6 @@ def toggle_vector_window():
     else:
         vector_window.show()
 
-config_menu.add_command(label="ベクトルウィンドウ 表示/非表示", command=toggle_vector_window)
 
 if "main" in SAVED_GEOS and SAVED_GEOS["main"]:
     koRoot.geometry(SAVED_GEOS["main"])
@@ -1291,8 +1299,8 @@ lbl_dd_guide = tk.Label(koRoot, text="↑ 登録したいフォルダをD&Dし�
 lbl_dd_guide.pack(fill=tk.X, padx=5, pady=(0, 3))
 
 # 視覚的仕分けボタン
-btn_visual_sort = tk.Button(koRoot, text="AI Visual Sort 機能(視覚的仕分け)ボタン", command=run_visual_sort, bg="#e8f0fe", font=("MS Gothic", 10), relief="groove", cursor="hand2")
-btn_visual_sort.pack(fill=tk.X, padx=5, pady=(0, 10))
+btn_visual_sort = tk.Button(koRoot, text="視覚的仕分け機能(AI Visual Sort)ボタン", command=run_visual_sort, bg="#e8f0fe", font=("MS Gothic", 16, "bold"), relief="groove", cursor="hand2", height=2)
+btn_visual_sort.pack(fill=tk.X, padx=5, pady=(5, 5), side=tk.BOTTOM)
 
 # 移動エリアを保持するフレーム
 move_frame = tk.Frame(koRoot)

@@ -436,7 +436,7 @@ class SplashWindow(tk.Toplevel):
         
         # アプリタイトル
         self.canvas.create_text(w//2, h//2 - 40, text="推し活を推進するための", fill="#aaaaaa", font=("MS Gothic", 16))
-        self.canvas.create_text(w//2, h//2 + 10, text="画像整理アプリ（仮）", fill="#ffffff", font=("MS Gothic", 32, "bold"))
+        self.canvas.create_text(w//2, h//2 + 10, text="画像整理（仮）", fill="#ffffff", font=("MS Gothic", 28, "bold"))
         
         # バージョン情報
         self.canvas.create_text(w-20, h-20, text="Ver 2.7.2", fill="#666666", font=("Helvetica", 12), anchor="se")
@@ -536,7 +536,8 @@ class VisualSortWindow(tk.Toplevel):
         self.is_loading = False
         self.stop_thread = False
         self.all_results = []
-        
+        self.score_boundaries = []
+
         # データ読み込み開始
         self.col_count = 5 # 初期カラム数
         self.bind("<Configure>", self.on_resize) # リサイズイベント
@@ -614,10 +615,18 @@ class VisualSortWindow(tk.Toplevel):
         # スライダー
         tk.Label(self.frame_mid, text="類似度:", bg="#444444", fg="white").pack(side=tk.LEFT, padx=5)
         self.var_threshold = tk.DoubleVar(value=0.85)
-        self.scale = tk.Scale(self.frame_mid, variable=self.var_threshold, from_=0.0, to=1.0, resolution=0.01, 
+        self.scale = tk.Scale(self.frame_mid, variable=self.var_threshold, from_=0.0, to=1.0, resolution=0.01,
                               orient=tk.HORIZONTAL, bg="#444444", fg="white", length=200, command=self.on_slider_change)
         self.scale.pack(side=tk.LEFT, padx=5)
-        
+
+        # 境界ジャンプボタン & 表示枚数ラベル
+        btn_prev = tk.Button(self.frame_mid, text="▲", width=3, command=self.jump_to_prev_boundary)
+        btn_prev.pack(side=tk.LEFT, padx=(2, 0))
+        btn_next = tk.Button(self.frame_mid, text="▼", width=3, command=self.jump_to_next_boundary)
+        btn_next.pack(side=tk.LEFT, padx=(0, 2))
+        self.lbl_visible_count = tk.Label(self.frame_mid, text="0枚", bg="#444444", fg="#00ff00", font=("MS Gothic", 10, "bold"))
+        self.lbl_visible_count.pack(side=tk.LEFT, padx=5)
+
         # 選択制御
         self.btn_select_all = tk.Button(self.frame_mid, text="全選択", command=self.select_all)
         self.btn_select_all.pack(side=tk.LEFT, padx=(10, 2))
@@ -763,6 +772,7 @@ class VisualSortWindow(tk.Toplevel):
     def _on_analysis_complete(self, results, elapsed):
         self.lbl_status.config(text=f"完了 ({elapsed:.2f}秒, {len(results)}枚)")
         self.all_results = results # [(path, score), ...]
+        self._compute_score_boundaries()
         self.refresh_grid()
 
     def refresh_grid(self):
@@ -800,8 +810,11 @@ class VisualSortWindow(tk.Toplevel):
                 col = 0
                 row += 1
         
+        # 枚数ラベル更新
+        self.lbl_visible_count.config(text=f"{visible_count}枚")
+
         # スクロール領域更新のためにイベント発火等を検討したが、ScrollableFrameはConfigureで自動対応しているはず
-        
+
     def create_image_card(self, parent, path, score):
         """画像+スコア+チェックボックスのカードを作成"""
         frame = tk.Frame(parent, bd=2, relief=tk.RIDGE, bg="white", width=200, height=220)
@@ -835,6 +848,40 @@ class VisualSortWindow(tk.Toplevel):
     def on_slider_change(self, val):
         # 連続実行を防ぐため、少し遅延させるのがベストだが、まずは直接呼ぶ
         # 全リロードではなく、フィルタリングだけなら早いはず
+        self.refresh_grid()
+
+    def _compute_score_boundaries(self):
+        """all_resultsからユニークなスコア値を抽出し降順ソート"""
+        scores = sorted(set(score for _, score in self.all_results), reverse=True)
+        self.score_boundaries = scores
+
+    def jump_to_next_boundary(self):
+        """▼ = 閾値を下げて表示枚数を増やす"""
+        if not self.score_boundaries:
+            return
+        current = self.var_threshold.get()
+        for s in self.score_boundaries:
+            if s < current:
+                self.var_threshold.set(s)
+                self.scale.set(s)
+                self.refresh_grid()
+                return
+
+    def jump_to_prev_boundary(self):
+        """▲ = 現在表示中の最低スコア画像を除外して表示枚数を減らす"""
+        if not self.all_results:
+            return
+        threshold = self.var_threshold.get()
+        # 現在表示中の画像のうち最低スコアを取得
+        visible_scores = [score for _, score in self.all_results if score >= threshold]
+        if not visible_scores:
+            return
+        min_score = min(visible_scores)
+        new_threshold = min_score + 0.001
+        if new_threshold > 1.0:
+            new_threshold = 1.0
+        self.var_threshold.set(new_threshold)
+        self.scale.set(new_threshold)
         self.refresh_grid()
 
     def select_all(self):

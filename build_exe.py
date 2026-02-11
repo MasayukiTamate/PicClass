@@ -61,6 +61,13 @@ if not os.path.exists(dist_dir):
 # ロジックファイルとlibフォルダをコピー
 print("Copying external logic files to dist folder...")
 
+# PicClass.ico（ウィンドウアイコン用）
+try:
+    shutil.copy('PicClass.ico', dist_dir)
+    print(" - Copied PicClass.ico")
+except Exception as e:
+    print(f"Error copying PicClass.ico: {e}")
+
 # GazoToolsLogic.py
 try:
     shutil.copy('GazoToolsLogic.py', dist_dir)
